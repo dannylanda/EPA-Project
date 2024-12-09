@@ -45,6 +45,6 @@ verify_exit_status "chmod"
 
 # Execute the LEMP stack setup script
 echo "Executing the lemp-setup.sh script..." | tee -a $LOG_FILE
-sudo bash /root/wordpress-project/lemp-setup.sh
+sudo bash /root/wordpress-project/lemp-stack-setup.sh
 # Confirm whether the setup script executed successfully
-verify_exit_status "lemp-setup.sh script"
+verify_exit_status "lemp-stack-setup.sh script"
