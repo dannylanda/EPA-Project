@@ -19,7 +19,8 @@ sudo php -v >> /root/testing.txt # Logs the installed PHP version
 
 # Stop and disable Apache as Nginx is in use
 sudo systemctl stop apache2
-sudo systemctl disable apache2
+sudo systemctl disable apache2 
+sudo apt purge apache2 apache2-utils apache2-bin apache2.2-common
 # To completely remove Apache, uncomment the following command:
 # sudo apt remove --purge apache2
 
