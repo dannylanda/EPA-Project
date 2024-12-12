@@ -11,7 +11,7 @@ username=$(tr -dc 'A-Za-z' < /dev/urandom | head -c 25)
 
 echo $password > creds.txt
 echo $username >> creds.txt
-sudo mv creds.txt /root/ai-content-application/
+sudo mv creds.txt /root/EPA/
 
 # sudo mariadb -u root
 sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
