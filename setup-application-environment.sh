@@ -33,18 +33,18 @@ check_exit_status "apt upgrade"
 
 # Clone the GitHub repository
 echo "Cloning GitHub repository..." | tee -a $LOG_FILE
-sudo git clone https://github.com/dannylanda/EPA.git /root/EPA-project
+sudo git clone https://github.com/dannylanda/EPA-Project.git /root/EPA-Project
 # Check if the git clone command succeeded or failed
 check_exit_status "git clone"
 
 # Change permissions of the cloned repository
 echo "Changing permissions of the cloned repository..." | tee -a $LOG_FILE
-sudo chmod -R 755 /root/EPA-project
+sudo chmod -R 755 /root/EPA-Project/
 # Check if the chmod command succeeded or failed
 check_exit_status "chmod"
 
 # Run the setup script
-echo "Running lemp-setup.sh script..." | tee -a $LOG_FILE
-sudo bash /root/EPA-project/lemp-stack-setup.sh
+echo "Running lemp-setup-setup.sh script..." | tee -a $LOG_FILE
+sudo bash /root/EPA-Project/lemp-stack-setup.sh
 # Check if the setup script execution succeeded or failed
 check_exit_status "lemp-stack-setup.sh script"

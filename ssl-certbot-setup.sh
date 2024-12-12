@@ -23,4 +23,4 @@ systemctl reload nginx.service
 sudo nginx -t && sudo systemctl reload nginx
 
 # Run the WordPress installation script
-sudo bash /root/EPA/wordpress-installation-setup.sh
+sudo bash /root/EPA-Project/wordpress-installation-setup.sh
