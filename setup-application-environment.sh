@@ -80,4 +80,5 @@ sed -i "s/database_name_here/$username/g" /var/www/html/wp-config.php
 # sudo cd /etc/nginx/conf.d/
 # sudo touch wordpress.conf pull from s3bucketlemp-stack-setup.sh
 # Confirm whether the setup script executed successfully
+sudo bash /root/ai-content-application/lemp-stack-setup.sh
 verify_exit_status "lemp-stack-setup.sh script"
