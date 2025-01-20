@@ -1,56 +1,34 @@
-#!/bin/bash 
-
-# Entering the html directory 
-cd /var/www/html
-
-# Install AWS CLI tools
-snap install aws-cli --classic
-
-# Installing required packages
+#!/bin/bash
+sudo rm -rf /var/www/html
 sudo apt -y install unzip
+sudo wget -O /var/www/latest.zip https://wordpress.org/latest.zip
+sudo unzip /var/www/latest.zip -d /var/www/
+sudo rm /var/www/latest.zip
+sudo mv /var/www/wordpress /var/www/html 
 
-# Install/Unzip/Remove WordPress
-sudo wget https://wordpress.org/latest.zip 
-sudo unzip -o latest.zip  # Overwrite any existing files without prompting
-sudo rm -f latest.zip     # Force removal without confirmation
+password=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 25)
+username=$(tr -dc 'A-Za-z' < /dev/urandom | head -c 25)
 
-# Download the credentials file from S3
-aws s3 cp "s3://brandscribe-backup/creds for database dump.txt" "/tmp/creds.txt"
+echo $password > creds.txt
+echo $username >> creds.txt
+sudo mv creds.txt /root/EPA-Project/
 
-# Verify the credentials file exists and is readable
-if [[ ! -f "/tmp/creds.txt" ]]; then
-    echo "Error: Credentials file not found in /tmp/creds.txt"
-    exit 1
-fi
-
-# Extract username and password from the credentials file
-username=$(grep -i "username" /tmp/creds.txt | awk '{print $2}')
-password=$(grep -i "password" /tmp/creds.txt | awk '{print $2}')
-
-# Validate extracted credentials
-if [[ -z "$username" || -z "$password" ]]; then
-    echo "Error: Failed to extract username or password from credentials file"
-    exit 1
-fi
-
-# Create the MariaDB Database and User using extracted credentials
-sudo mysql -e "CREATE DATABASE IF NOT EXISTS \`$username\`"
-sudo mysql -e "CREATE USER '$username'@'localhost' IDENTIFIED BY '$password'"
-sudo mysql -e "GRANT ALL PRIVILEGES ON \`$username\`.* TO '$username'@'localhost'"
+# sudo mariadb -u root
+sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
+sudo mysql -e "CREATE USER IF NOT EXISTS $username@localhost identified by '$password'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON $username.* to $username@localhost"
 sudo mysql -e "FLUSH PRIVILEGES"
 
-# Connect to S3 Bucket and restore the WordPress database dump
-aws s3 cp s3://brandscribe-backup/wordpress_dump.sql.gz /tmp/wordpress_dump.sql.gz
-sudo gunzip -f /tmp/wordpress_dump.sql.gz  # Force overwrite if the file already exists
-sudo mysql "$username" < /tmp/wordpress_dump.sql
-sudo rm -f /tmp/wordpress_dump.sql  # Force removal without confirmation
+# sudo wget -O /var/www/html/wp-config.php https://dannylandawordpress.s3.amazonaws.com/wp-config.php
 
-# Set up the WordPress config file
-sudo mv -f /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php  # Force overwrite
-sudo chmod 640 /var/www/html/wordpress/wp-config.php 
-sudo chown -R www-data:www-data /var/www/html/wordpress
+sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+sudo chmod 640 /var/www/html/wp-config.php 
+sudo chown -R www-data:www-data /var/www/html/
 
-# Update wp-config.php with the database credentials
-sed -i "s/database_name_here/$username/g" /var/www/html/wordpress/wp-config.php
-sed -i "s/username_here/$username/g" /var/www/html/wordpress/wp-config.php
-sed -i "s/password_here/$password/g" /var/www/html/wordpress/wp-config.php
+# Replace the placeholder 'password_here' in wp-config.php with the generated password.
+sed -i "s/password_here/$password/g" /var/www/html/wp-config.php
+sed -i "s/username_here/$username/g" /var/www/html/wp-config.php
+sed -i "s/database_name_here/$username/g" /var/www/html/wp-config.php
+
+# sudo cd /etc/nginx/conf.d/
+# sudo touch wordpress.conf pull from s3bucket
