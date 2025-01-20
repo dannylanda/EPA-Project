@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template to create EC2 instance with security group and deploy application.
+
+Resources:
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: us-east-1a
+      ImageId: ami-04b4f1a9cf54c11d0
+      InstanceType: t2.micro
+      SecurityGroups:
+        - !Ref InstanceSecurityGroup
+      KeyName: Brandscribe
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+
+          # Log file path
+          LOG_FILE="/var/log/script_execution.log"
+
+          # Function to check the exit status of the last executed command
+          check_exit_status() {
+              if [ $? -ne 0 ]; then
+                  echo "Error: $1 failed." | tee -a $LOG_FILE
+                  exit 1
+              else
+                  echo "$1 succeeded." | tee -a $LOG_FILE
+              fi
+          }
+
+          # Clear the log file at the beginning of the script
+          > $LOG_FILE
+
+          # Update package lists
+          echo "Running apt update..." | tee -a $LOG_FILE
+          sudo apt -y update
+          check_exit_status "apt update"
+
+          # Upgrade installed packages
+          echo "Running apt upgrade..." | tee -a $LOG_FILE
+          sudo apt -y upgrade
+          check_exit_status "apt upgrade"
+
+          # Clone the GitHub repository
+          echo "Cloning GitHub repository..." | tee -a $LOG_FILE
+          sudo git clone https://github.com/dannylanda/EPA-Project.git /root/EPA-Project
+          check_exit_status "git clone"
+
+          # Change permissions of the cloned repository
+          echo "Changing permissions of the cloned repository..." | tee -a $LOG_FILE
+          sudo chmod -R 755 /root/EPA-Project/
+          check_exit_status "chmod"
+
+          # Run the setup script
+          echo "Running lemp-setup-setup.sh script..." | tee -a $LOG_FILE
+          sudo bash /root/EPA-Project/lemp-stack-setup.sh
+          check_exit_status "lemp-stack-setup.sh script"
+
+  MyElasticIP:
+    Type: AWS::EC2::EIP
+
+  MyEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref MyInstance
+      EIP: !Ref MyElasticIP
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable access via ports 22, 80, and 443
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  InstancePublicIP:
+    Description: Public IP of the instance
+    Value: !GetAtt MyInstance.PublicIp
+  SshCommand:
+    Description: SSH command to access the instance
+    Value: !Sub "ssh -i Brandscribe.pem ec2-user@${MyInstance.PublicIp}"
