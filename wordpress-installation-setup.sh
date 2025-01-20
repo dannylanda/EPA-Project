@@ -15,22 +15,34 @@ sudo unzip -o latest.zip  # Overwrite any existing files without prompting
 sudo rm -f latest.zip     # Force removal without confirmation
 
 # Download the credentials file from S3
-aws s3 cp "s3://brandscribe-backup/creds for database dump.txt" /tmp/creds.txt
+aws s3 cp "s3://brandscribe-backup/creds for database dump.txt" "/tmp/creds.txt"
+
+# Verify the credentials file exists and is readable
+if [[ ! -f "/tmp/creds.txt" ]]; then
+    echo "Error: Credentials file not found in /tmp/creds.txt"
+    exit 1
+fi
 
 # Extract username and password from the credentials file
 username=$(grep -i "username" /tmp/creds.txt | awk '{print $2}')
 password=$(grep -i "password" /tmp/creds.txt | awk '{print $2}')
 
+# Validate extracted credentials
+if [[ -z "$username" || -z "$password" ]]; then
+    echo "Error: Failed to extract username or password from credentials file"
+    exit 1
+fi
+
 # Create the MariaDB Database and User using extracted credentials
-sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
-sudo mysql -e "CREATE USER $username@localhost IDENTIFIED BY '$password'"
-sudo mysql -e "GRANT ALL PRIVILEGES ON $username.* TO $username@localhost"
+sudo mysql -e "CREATE DATABASE IF NOT EXISTS \`$username\`"
+sudo mysql -e "CREATE USER '$username'@'localhost' IDENTIFIED BY '$password'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON \`$username\`.* TO '$username'@'localhost'"
 sudo mysql -e "FLUSH PRIVILEGES"
 
 # Connect to S3 Bucket and restore the WordPress database dump
 aws s3 cp s3://brandscribe-backup/wordpress_dump.sql.gz /tmp/wordpress_dump.sql.gz
 sudo gunzip -f /tmp/wordpress_dump.sql.gz  # Force overwrite if the file already exists
-sudo mysql $username < /tmp/wordpress_dump.sql
+sudo mysql "$username" < /tmp/wordpress_dump.sql
 sudo rm -f /tmp/wordpress_dump.sql  # Force removal without confirmation
 
 # Set up the WordPress config file
