@@ -70,6 +70,6 @@ sudo chmod 640 /var/www/html/wp-config.php
 sudo chown -R www-data:www-data /var/www/html/wordpress
 
 # Update wp-config.php with the database credentials
-sed -i "s/password_here/$password/g" /var/www/html/wp-config.php
-sed -i "s/username_here/$username/g" /var/www/html/wp-config.php
-sed -i "s/database_name_here/$username/g" /var/www/html/wp-config.php
+sed -i "s/password_here/$password/g" /var/www/html/wordpress/wp-config.php
+sed -i "s/username_here/$username/g" /var/www/html/wordpress/wp-config.php
+sed -i "s/database_name_here/$username/g" /var/www/html/wordpress/wp-config.php
