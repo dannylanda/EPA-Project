@@ -11,7 +11,6 @@ username=$(tr -dc 'A-Za-z' < /dev/urandom | head -c 25)
 password=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 25)
 
 echo $username >> creds.txt
-<<<<<<< HEAD
 echo $password > creds.txt
 sudo mv creds.txt /root/EPA-Project
 
@@ -24,9 +23,6 @@ sudo gunzip /tmp/wordpress_dump.sql.gz
 sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
 sudo mysql $username < /tmp/wordpress_dump.sql
 sudo rm /tmp/wordpress_dump.sql
-=======
-sudo mv creds.txt /root/EPA-Project/
->>>>>>> f1395f865c4eed151078bbf0725d25d156d5f5a5
 
 # sudo mariadb -u root
 # sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
