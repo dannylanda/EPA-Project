@@ -65,8 +65,8 @@ sudo mysql $username < /tmp/wordpress_dump.sql
 sudo rm /tmp/wordpress_dump.sql
 
 # Set up the WordPress config file
-sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
-sudo chmod 640 /var/www/html/wp-config.php 
+sudo mv /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php
+sudo chmod 640 /var/www/html/wordpress/wp-config.php 
 sudo chown -R www-data:www-data /var/www/html/wordpress
 
 # Update wp-config.php with the database credentials
