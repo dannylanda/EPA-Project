@@ -5,8 +5,6 @@ sudo snap install aws-cli --classic
 
 # Install required packages
 sudo apt -y install unzip
-
-# Install MySQL client (includes mysqldump)
 sudo apt -y install mysql-client  # Use mariadb-client if using MariaDB
 
 # Download and extract WordPress

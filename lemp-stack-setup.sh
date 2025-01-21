@@ -38,8 +38,4 @@ sed -i "s/SERVERNAME/$my_domain/g" /etc/nginx/conf.d/nginx.conf
 nginx -t && systemctl reload nginx
 
 # Run the Certbot SSL installation script
-<<<<<<< HEAD
 sudo bash /root/EPA-Project/ssl-certbot-setup.sh
-=======
-sudo bash /root/EPA-Project/ssl-certbot-setup.sh
->>>>>>> f1395f865c4eed151078bbf0725d25d156d5f5a5
