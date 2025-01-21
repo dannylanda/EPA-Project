@@ -1,49 +1,59 @@
 #!/bin/bash
-sudo rm -rf /var/www/html
-snap install aws-cli --classic
+
+# Install AWS CLI
+sudo snap install aws-cli --classic
+
+# Install required packages
 sudo apt -y install unzip
+
+# Install MySQL client (includes mysqldump)
+sudo apt -y install mysql-client  # Use mariadb-client if using MariaDB
+
+# Download and extract WordPress
+sudo rm -rf /var/www/html  # Ensure target directory is empty
 sudo wget -O /var/www/latest.zip https://wordpress.org/latest.zip
 sudo unzip /var/www/latest.zip -d /var/www/
 sudo rm /var/www/latest.zip
-sudo mv /var/www/wordpress /var/www/html 
+sudo mv /var/www/wordpress /var/www/html
 
+# Generate a random username and password
 username=$(tr -dc 'A-Za-z' < /dev/urandom | head -c 25)
 password=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 25)
 
-echo $username >> creds.txt
-<<<<<<< HEAD
-echo $password > creds.txt
-sudo mv creds.txt /root/EPA-Project
-
-# Retrieve credentials (adjust the file path if needed)
-username=$(tail -n 1 /root/EPA-Project/creds.txt)
-password=$(head -n 1 /root/EPA-Project/creds.txt)
-
-aws s3 cp s3://brandscribe-backup/wordpress_dump.sql.gz /tmp/wordpress_dump.sql.gz
-sudo gunzip /tmp/wordpress_dump.sql.gz
-sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
-sudo mysql $username < /tmp/wordpress_dump.sql
-sudo rm /tmp/wordpress_dump.sql
-=======
+# Save credentials to creds.txt (username first, then password)
+echo $username > creds.txt
+echo $password >> creds.txt
 sudo mv creds.txt /root/EPA-Project/
->>>>>>> f1395f865c4eed151078bbf0725d25d156d5f5a5
 
-# sudo mariadb -u root
-# sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
-# sudo mysql -e "CREATE USER IF NOT EXISTS $username@localhost identified by '$password'"
-# sudo mysql -e "GRANT ALL PRIVILEGES ON $username.* to $username@localhost"
-# sudo mysql -e "FLUSH PRIVILEGES"
+# Upload creds.txt to S3 bucket
+sudo aws s3 cp /root/EPA-Project/creds.txt s3://brandscribe-backup/creds.txt
 
-# sudo wget -O /var/www/html/wp-config.php https://dannylandawordpress.s3.amazonaws.com/wp-config.php
+# Create MySQL database and user
+sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
+sudo mysql -e "CREATE USER IF NOT EXISTS $username@localhost IDENTIFIED BY '$password'"
+sudo mysql -e "GRANT ALL PRIVILEGES ON $username.* TO $username@localhost"
+sudo mysql -e "FLUSH PRIVILEGES"
 
+# Move the wp-config-sample.php to wp-config.php
 sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
-sudo chmod 640 /var/www/html/wp-config.php 
+sudo chmod 640 /var/www/html/wp-config.php
 sudo chown -R www-data:www-data /var/www/html/
 
-# Replace the placeholder 'password_here' in wp-config.php with the generated password.
+# Replace placeholders with actual credentials in wp-config.php
 sed -i "s/password_here/$password/g" /var/www/html/wp-config.php
 sed -i "s/username_here/$username/g" /var/www/html/wp-config.php
 sed -i "s/database_name_here/$username/g" /var/www/html/wp-config.php
 
-# sudo cd /etc/nginx/conf.d/
-# sudo touch wordpress.conf pull from s3bucket
+# Create a dump of the WordPress database
+sudo mysqldump -u $username -p$password $username > /tmp/wordpress_dump.sql
+
+# Compress the SQL dump
+sudo gzip /tmp/wordpress_dump.sql
+
+# Upload the dump to S3 bucket
+sudo aws s3 cp /tmp/wordpress_dump.sql.gz s3://brandscribe-backup/wordpress_dump.sql.gz
+
+# Clean up the dump file locally
+sudo rm /tmp/wordpress_dump.sql.gz
+
+echo "WordPress database dump successfully created and uploaded to S3."
