@@ -72,9 +72,12 @@ check_exit_status "set ownership and permissions"
 
 # Add WordPress salts
 echo "Adding WordPress salts..." | tee -a $LOG_FILE
-SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)
-STRING='put your unique phrase here'
-sudo sed -i "s|$STRING|$SALT|" /var/www/html/wp-config.php
+SALT=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/)
+check_exit_status "fetch WordPress salts"
+
+# Safely replace placeholder and add salts
+sudo sed -i "/put your unique phrase here/d" /var/www/html/wp-config.php
+printf '%s\n' "$SALT" | sudo tee -a /var/www/html/wp-config.php > /dev/null
 check_exit_status "add WordPress salts"
 
 # Install and start Nginx
