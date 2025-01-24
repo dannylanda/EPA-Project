@@ -93,7 +93,7 @@ Resources:
         - !Ref SecurityGroup
       Tags:
         - Key: "Name"
-          Value: "Brandscribe-Instance-1"
+          Value: "Frontend"
       IamInstanceProfile: Brandscribe
 
   Instance2:
@@ -107,7 +107,7 @@ Resources:
         - !Ref SecurityGroup
       Tags:
         - Key: "Name"
-          Value: "Brandscribe-Instance-2"
+          Value: "Backend"
       IamInstanceProfile: Brandscribe
 
   ElasticIP1:
@@ -123,7 +123,7 @@ Resources:
   S3Bucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "brandscribe-backup-${AWS::AccountId}-${AWS::Region}"
+      BucketName: "brandscribe-backup"
       Tags:
         - Key: "Name"
           Value: "brandscribe-backup"
@@ -140,16 +140,16 @@ Resources:
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/Brandscribe"
             Action: "s3:*"
             Resource:
-              - !Sub "arn:aws:s3:::brandscribe-backup-${AWS::AccountId}-${AWS::Region}"
-              - !Sub "arn:aws:s3:::brandscribe-backup-${AWS::AccountId}-${AWS::Region}/*"
+              - !Sub "arn:aws:s3:::brandscribe-backup"
+              - !Sub "arn:aws:s3:::brandscribe-backup/*"
 
 Outputs:
   Instance1PublicIP:
-    Description: "Public IP address of the first EC2 instance."
+    Description: "Public IP address of the first EC2 instance (Frontend)."
     Value: !Ref ElasticIP1
 
   Instance2PublicIP:
-    Description: "Public IP address of the second EC2 instance."
+    Description: "Public IP address of the second EC2 instance (Backend)."
     Value: !Ref ElasticIP2
 
   S3BucketName:
