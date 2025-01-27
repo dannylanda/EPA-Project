@@ -91,6 +91,26 @@ sudo systemctl start nginx
 sudo systemctl enable nginx
 check_exit_status "start Nginx"
 
+# Move the Nginx configuration files (nginx.conf and wordpress.conf)
+echo "Moving Nginx configuration files..." | tee -a $LOG_FILE
+sudo mv /root/EPA-Project/nginx.conf /etc/nginx/nginx.conf
+check_exit_status "move nginx.conf"
+
+sudo mv /root/EPA-Project/wordpress.conf /etc/nginx/conf.d/wordpress.conf
+check_exit_status "move wordpress.conf"
+
+# Replace SERVERNAME placeholder in nginx.conf and wordpress.conf
+my_domain="brandscribe.tech"
+echo "Replacing SERVERNAME with $my_domain in nginx.conf and wordpress.conf..." | tee -a $LOG_FILE
+
+# Replace SERVERNAME in nginx.conf
+sed -i "s/SERVERNAME/$my_domain/g" /etc/nginx/nginx.conf
+check_exit_status "replace SERVERNAME in nginx.conf"
+
+# Replace SERVERNAME in wordpress.conf
+sed -i "s/SERVERNAME/$my_domain/g" /etc/nginx/conf.d/wordpress.conf
+check_exit_status "replace SERVERNAME in wordpress.conf"
+
 # Install PHP and necessary extensions
 echo "Installing PHP and extensions..." | tee -a $LOG_FILE
 sudo apt -y install php-fpm php php-cli php-common php-imap php-snmp php-xml php-zip php-mbstring php-curl php-mysqli php-gd php-intl
