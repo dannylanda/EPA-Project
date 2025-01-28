@@ -34,7 +34,6 @@ check_exit_status "chmod"
 # Run the setup script
 log "Running lemp-setup.sh script..."
 
-sudo apt -y update && sudo apt -y upgrade
 sudo touch /root/EPA-Project/testing.txt
 sudo apt -y install nginx
 sudo systemctl start nginx && sudo systemctl enable nginx 
@@ -49,8 +48,7 @@ sudo mv /root/EPA-Project/configs/nginx.conf /etc/nginx/conf.d/nginx.conf
 sed -i "s/DOMAIN/brandscribe.tech/g" /etc/nginx/conf.d/nginx.conf 
 nginx -t && systemctl reload nginx # && means it wont complete the next command if the first one fails
 
-# Update package list and install Certbot and Certbot Nginx plugin
-sudo apt -y update && sudo apt -y upgrade
+# install Certbot and Certbot Nginx plugin
 sudo apt -y install certbot
 sudo apt -y install python3-certbot-nginx
 
@@ -67,7 +65,7 @@ sudo nginx -t && systemctl reload nginx
 sudo rm -rf /var/www/html
 sudo apt -y install unzip 
 sudo wget -O /var/www/latest.zip https://wordpress.org/latest.zip 
-sudo unzip /var/www/latest.zip -d /var/www/`
+sudo unzip -o /var/www/latest.zip -d /var/www/html
 sudo rm /var/www/latest.zip 
 mv /var/www/wordpress /var/www/html
 
