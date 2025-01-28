@@ -6,7 +6,7 @@ LOG_FILE="/var/log/script_execution.log"
 # Function to check the exit status of the last executed command
 check_exit_status() {
     if [ $? -ne 0 ]; then
-        echo "Error: $1 failed. Check the logs for details." | tee -a $LOG_FILE
+        echo "Error: $1 failed." | tee -a $LOG_FILE
         exit 1
     else
         echo "$1 succeeded." | tee -a $LOG_FILE
@@ -14,115 +14,67 @@ check_exit_status() {
 }
 
 # Clear the log file at the beginning of the script
-echo "Starting script execution: $(date)" > $LOG_FILE
-echo "----------------------------------------" | tee -a $LOG_FILE
+> $LOG_FILE
 
-# Update package lists
-echo "Updating package lists..." | tee -a $LOG_FILE
-sudo apt -y update
-check_exit_status "apt update"
+# Update and Upgrade package lists
+echo "Running apt update..." | tee -a $LOG_FILE
+sudo apt -y update && sudo apt -y upgrade
+check_exit_status "apt update and upgrade"
 
-# Upgrade installed packages
-echo "Upgrading installed packages..." | tee -a $LOG_FILE
-sudo apt -y upgrade
-check_exit_status "apt upgrade"
+# Clone the GitHub repository
+echo "Cloning GitHub repository..." | tee -a $LOG_FILE
+sudo git clone -b Scripts-1.1 https://github.com/dannylanda/EPA-Project.git /root/EPA-Project
+check_exit_status "git clone"
 
-# Install necessary tools (wget, unzip)
-echo "Installing essential tools (wget, unzip)..." | tee -a $LOG_FILE
-sudo apt -y install wget unzip
-check_exit_status "install essential tools"
+# Change permissions of the cloned repository
+echo "Changing permissions of the cloned repository..." | tee -a $LOG_FILE
+sudo chmod -R 755 /root/EPA-Project/bash_scripts #change this to just be specific files that need execute permissions
+check_exit_status "chmod"
 
-# Prepare /var/www/html directory
-echo "Preparing /var/www/html directory..." | tee -a $LOG_FILE
-sudo rm -rf /var/www/html
-sudo mkdir -p /var/www/html
-check_exit_status "prepare /var/www/html"
+# Run the setup script
+log "Running lemp-setup.sh script..."
 
-# Download and extract WordPress
-TEMP_DIR=$(mktemp -d)
-echo "Downloading WordPress to temporary directory..." | tee -a $LOG_FILE
-sudo wget -O $TEMP_DIR/latest.zip https://wordpress.org/latest.zip
-check_exit_status "download WordPress"
-
-echo "Extracting WordPress..." | tee -a $LOG_FILE
-sudo unzip $TEMP_DIR/latest.zip -d $TEMP_DIR
-check_exit_status "extract WordPress"
-sudo rm -rf $TEMP_DIR/latest.zip  # Remove the zip file after extraction
-
-echo "Moving WordPress files to /var/www/html..." | tee -a $LOG_FILE
-sudo mv $TEMP_DIR/wordpress/* /var/www/html/
-sudo rm -rf $TEMP_DIR  # Clean up temporary directory
-check_exit_status "move WordPress files"
-
-# Configure wp-config.php
-echo "Configuring wp-config.php..." | tee -a $LOG_FILE
-if [ -f "/var/www/html/wp-config-sample.php" ]; then
-    sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
-    sudo chmod 640 /var/www/html/wp-config.php
-    check_exit_status "configure wp-config.php"
-else
-    echo "Error: wp-config-sample.php not found in /var/www/html." | tee -a $LOG_FILE
-    exit 1
-fi
-
-# Add WordPress salts
-echo "Adding WordPress salts..." | tee -a $LOG_FILE
-SALT=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/)
-check_exit_status "fetch WordPress salts"
-
-sudo sed -i "/AUTH_KEY/d" /var/www/html/wp-config.php
-sudo sed -i "/put your unique phrase here/d" /var/www/html/wp-config.php
-printf '%s\n' "$SALT" | sudo tee -a /var/www/html/wp-config.php > /dev/null
-check_exit_status "add WordPress salts"
-
-# Set proper ownership and permissions for /var/www/html
-echo "Setting ownership and permissions for /var/www/html..." | tee -a $LOG_FILE
-sudo chown -R www-data:www-data /var/www/html
-sudo find /var/www/html -type d -exec chmod 755 {} \;
-sudo find /var/www/html -type f -exec chmod 644 {} \;
-check_exit_status "set ownership and permissions"
-
-# Install and start Nginx
-echo "Installing and starting Nginx..." | tee -a $LOG_FILE
+sudo apt -y update && sudo apt -y upgrade
+sudo touch /root/EPA-Project/testing.txt
 sudo apt -y install nginx
-check_exit_status "install Nginx"
-
-sudo systemctl start nginx
-sudo systemctl enable nginx
-check_exit_status "start Nginx"
-
-# Move the Nginx configuration files (nginx.conf and wordpress.conf)
-echo "Moving Nginx configuration files..." | tee -a $LOG_FILE
-sudo mv /root/EPA-Project/nginx.conf /etc/nginx/nginx.conf
-check_exit_status "move nginx.conf"
-
-sudo mv /root/EPA-Project/wordpress.conf /etc/nginx/conf.d/wordpress.conf
-check_exit_status "move wordpress.conf"
-
-# Replace SERVERNAME placeholder in nginx.conf and wordpress.conf
-my_domain="brandscribe.tech"
-echo "Replacing SERVERNAME with $my_domain in nginx.conf and wordpress.conf..." | tee -a $LOG_FILE
-
-# Replace SERVERNAME in nginx.conf
-sed -i "s/SERVERNAME/$my_domain/g" /etc/nginx/nginx.conf
-check_exit_status "replace SERVERNAME in nginx.conf"
-
-# Replace SERVERNAME in wordpress.conf
-sed -i "s/SERVERNAME/$my_domain/g" /etc/nginx/conf.d/wordpress.conf
-check_exit_status "replace SERVERNAME in wordpress.conf"
-
-# Install PHP and necessary extensions
-echo "Installing PHP and extensions..." | tee -a $LOG_FILE
+sudo systemctl start nginx && sudo systemctl enable nginx 
+sudo systemctl status nginx > /root/EPA-Project/testing.txt
 sudo apt -y install php-fpm php php-cli php-common php-imap php-snmp php-xml php-zip php-mbstring php-curl php-mysqli php-gd php-intl
-check_exit_status "install PHP"
+sudo php -v >> /root/EPA-Project/testing.txt
+sudo systemctl status php8.3-fpm >> /root/EPA-Project/testing.txt
 
-# Restart and test Nginx configuration
-echo "Testing and reloading Nginx..." | tee -a $LOG_FILE
-sudo nginx -t
-check_exit_status "test Nginx configuration"
+sudo mv /root/EPA-Project/configs/nginx.conf /etc/nginx/conf.d/nginx.conf
 
-sudo systemctl reload nginx
-check_exit_status "reload Nginx"
+# Update nginx configuration file
+sed -i "s/DOMAIN/brandscribe.tech/g" /etc/nginx/conf.d/nginx.conf 
+nginx -t && systemctl reload nginx # && means it wont complete the next command if the first one fails
 
-echo "Script completed successfully!" | tee -a $LOG_FILE
-echo "----------------------------------------" | tee -a $LOG_FILE
+# Update package list and install Certbot and Certbot Nginx plugin
+sudo apt -y update && sudo apt -y upgrade
+sudo apt -y install certbot
+sudo apt -y install python3-certbot-nginx
+
+# # Define your email
+CERTBOTMAIL=EMAIL
+CERTBOTURL=DOMAIN
+
+sudo certbot --nginx --non-interactive --agree-tos --email CERTBOTMAIL -d CERTBOTURL
+
+# Nginx unit test that will reload Nginx to apply changes ONLY if the test is successful
+sudo nginx -t && systemctl reload nginx
+
+# Install WordPress
+sudo rm -rf /var/www/html
+sudo apt -y install unzip 
+sudo wget -O /var/www/latest.zip https://wordpress.org/latest.zip 
+sudo unzip /var/www/latest.zip -d /var/www/`
+sudo rm /var/www/latest.zip 
+mv /var/www/wordpress /var/www/html
+
+sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+sudo chmod 640 /var/www/html/wp-config.php 
+sudo chown -R www-data:www-data /var/www/html/
+
+SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)
+STRING='put your unique phrase here'
+printf '%s\n' "g/$STRING/d" a "$SALT" . w | ed -s /var/www/html/wp-config.php
