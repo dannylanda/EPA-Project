@@ -67,10 +67,10 @@ sudo rm -rf /var/www/html
 sudo apt -y install unzip 
 sudo wget -O /var/www/latest.zip https://wordpress.org/latest.zip 
 sudo unzip -o /var/www/latest.zip -d /var/www/html
-sudo rm /var/www/latest.zip 
-mv /var/www/wordpress /var/www/html
+sudo rm /var/www/html/latest.zip 
+mv /var/www/html/wordpress /var/www/html
 
-sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+# sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
 sudo chmod 640 /var/www/html/wp-config.php 
 sudo chown -R www-data:www-data /var/www/html/
 
