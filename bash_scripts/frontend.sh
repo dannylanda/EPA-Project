@@ -53,10 +53,11 @@ sudo apt -y install certbot
 sudo apt -y install python3-certbot-nginx
 
 # # Define your email
-CERTBOTMAIL=EMAIL
-CERTBOTURL=DOMAIN
+CERTBOTMAIL="danlanda@hotmail.com" # change this to a secret
+CERTBOTURL="brandscribe.tech" # change this to a secret
 
-sudo certbot --nginx --non-interactive --agree-tos --email CERTBOTMAIL -d CERTBOTURL
+
+sudo certbot --nginx --non-interactive --agree-tos --email "$CERTBOTMAIL" -d "$CERTBOTURL" #later change this to a secret
 
 # Nginx unit test that will reload Nginx to apply changes ONLY if the test is successful
 sudo nginx -t && systemctl reload nginx
