@@ -27,12 +27,18 @@ sudo apt -y purge apache2 apache2-utils apache2-bin apache2.2-common
 # Rename the default Apache test page
 sudo mv /var/www/html/index.html /var/www/html/index.html.old
 
-# Move the custom Nginx configuration file into place
-sudo mv /root/EPA-Project/nginx.conf /etc/nginx/conf.d/nginx.conf
+# Move the main Nginx configuration file into place (nginx.conf)
+sudo mv /root/EPA-Project/nginx.conf /etc/nginx/nginx.conf
 
-# Replace the placeholder domain in the Nginx configuration with the actual domain
+# Move the WordPress-specific Nginx configuration file into place (wordpress.conf)
+sudo mv /root/EPA-Project/wordpress.conf /etc/nginx/conf.d/wordpress.conf
+
+# Replace the placeholder domain in the Nginx configuration with the actual domain (in nginx.conf)
 my_domain="brandscribe.tech"
-sed -i "s/SERVERNAME/$my_domain/g" /etc/nginx/conf.d/nginx.conf
+sed -i "s/SERVERNAME/$my_domain/g" /etc/nginx/nginx.conf
+
+# Replace the placeholder domain in the WordPress-specific configuration (wordpress.conf)
+sed -i "s/SERVERNAME/$my_domain/g" /etc/nginx/conf.d/wordpress.conf
 
 # Test Nginx configuration and reload it if the test passes
 nginx -t && systemctl reload nginx

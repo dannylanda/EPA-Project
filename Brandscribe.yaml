@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "CloudFormation template to deploy EC2 instance with S3 access and Elastic IP."
+Description: "CloudFormation template to deploy EC2 instances with S3 access and Elastic IPs in eu-west-1."
 
 Parameters:
   KeyName:
     Type: String
     Default: "Danny-EPA-Key"
-    Description: "Key pair to SSH into the EC2 instance."
+    Description: "Key pair to SSH into the EC2 instances."
 
 Resources:
   VPC:
@@ -33,6 +33,7 @@ Resources:
       VpcId: !Ref VPC
       CidrBlock: "10.0.1.0/24"
       MapPublicIpOnLaunch: true
+      AvailabilityZone: "eu-west-1a"
       Tags:
         - Key: "Name"
           Value: "Public-Subnet"
@@ -81,7 +82,7 @@ Resources:
           ToPort: 3306
           CidrIp: "0.0.0.0/0"
 
-  Instance:
+  Instance1:
     Type: "AWS::EC2::Instance"
     Properties:
       InstanceType: "t2.micro"
@@ -92,18 +93,37 @@ Resources:
         - !Ref SecurityGroup
       Tags:
         - Key: "Name"
-          Value: "Brandscribe"
+          Value: "Frontend"
       IamInstanceProfile: Brandscribe
 
-  ElasticIP:
+  Instance2:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      InstanceType: "t2.micro"
+      KeyName: !Ref KeyName
+      ImageId: "ami-03fd334507439f4d1"
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      Tags:
+        - Key: "Name"
+          Value: "Backend"
+      IamInstanceProfile: Brandscribe
+
+  ElasticIP1:
     Type: "AWS::EC2::EIP"
     Properties:
-      InstanceId: !Ref Instance
+      InstanceId: !Ref Instance1
+
+  ElasticIP2:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      InstanceId: !Ref Instance2
 
   S3Bucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: "brandscribe-backup-epa"
+      BucketName: "brandscribe-backup"
       Tags:
         - Key: "Name"
           Value: "brandscribe-backup"
@@ -120,18 +140,18 @@ Resources:
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/Brandscribe"
             Action: "s3:*"
             Resource:
-              - !Sub "arn:aws:s3:::brandscribe-backup-epa"
-              - !Sub "arn:aws:s3:::brandscribe-backup-epa/*"
+              - !Sub "arn:aws:s3:::brandscribe-backup"
+              - !Sub "arn:aws:s3:::brandscribe-backup/*"
 
 Outputs:
-  InstancePublicIP:
-    Description: "Public IP address of the EC2 instance."
-    Value: !GetAtt Instance.PublicIp
+  Instance1PublicIP:
+    Description: "Public IP address of the first EC2 instance (Frontend)."
+    Value: !Ref ElasticIP1
+
+  Instance2PublicIP:
+    Description: "Public IP address of the second EC2 instance (Backend)."
+    Value: !Ref ElasticIP2
 
   S3BucketName:
     Description: "Name of the S3 bucket."
     Value: !Ref S3Bucket
-
-  ElasticIPAddress:
-    Description: "Elastic IP address."
-    Value: !Ref ElasticIP
