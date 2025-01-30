@@ -21,43 +21,49 @@ echo "Running apt update..." | tee -a $LOG_FILE
 sudo apt -y update && sudo apt -y upgrade
 check_exit_status "apt update and upgrade"
 
+# Install the AWS CLI tool using Snap for managing AWS resources
+snap install aws-cli --classic
+
 # Clone the GitHub repository
-echo "Cloning GitHub repository..." | tee -a $LOG_FILE
-sudo git clone -b Scripts-1.1 https://github.com/dannylanda/EPA-Project.git /root/EPA-Project
-check_exit_status "git clone"
+# echo "Cloning GitHub repository..." | tee -a $LOG_FILE
+# sudo git clone https://github.com/dannylanda/EPA-Project.git /home/ubuntu/EPA-Project
+# check_exit_status "git clone"
 
 # Change permissions of the cloned repository
-echo "Changing permissions of the cloned repository..." | tee -a $LOG_FILE
-sudo chmod -R 755 /root/EPA-Project/bash_scripts #change this to just be specific files that need execute permissions
-check_exit_status "chmod"
+# echo "Changing permissions of the cloned repository..." | tee -a $LOG_FILE
+# sudo chmod -R 755 /home/ubuntu/EPA-Project/bash_scripts
+# check_exit_status "chmod"
 
 # Run the setup script
 log "Running lemp-setup.sh script..."
 
-sudo touch /root/EPA-Project/testing.txt
+sudo apt -y update && sudo apt -y upgrade
+sudo touch /home/ubuntu/testing.txt
 sudo apt -y install nginx
 sudo systemctl start nginx && sudo systemctl enable nginx 
-sudo systemctl status nginx > /root/EPA-Project/testing.txt
+sudo systemctl status nginx > /home/ubuntu/testing.txt
 sudo apt -y install php-fpm php php-cli php-common php-imap php-snmp php-xml php-zip php-mbstring php-curl php-mysqli php-gd php-intl
-sudo php -v >> /root/EPA-Project/testing.txt
-sudo systemctl status php8.3-fpm >> /root/EPA-Project/testing.txt
+sudo php -v >> /home/ubuntu/testing.txt
 
-sudo mv /root/EPA-Project/configs/nginx.conf /etc/nginx/conf.d/nginx.conf
+cat /home/ubuntu/EPA-Project/configs/nginx.conf >> testing.txt
+
+sudo mv /home/ubuntu/EPA-Project/configs/nginx.conf /etc/nginx/conf.d/epa-domain.conf
 
 # Update nginx configuration file
-sed -i "s/DOMAIN/brandscribe.tech/g" /etc/nginx/conf.d/nginx.conf 
-nginx -t && systemctl reload nginx # && means it wont complete the next command if the first one fails
+#sed -i "s/SERVERNAME/$dns_record/g" /etc/nginx/conf.d/nginx.conf
+nginx -t && systemctl reload nginx 
 
-# install Certbot and Certbot Nginx plugin
+# Update package list and install Certbot and Certbot Nginx plugin
+sudo apt -y update && sudo apt -y upgrade
 sudo apt -y install certbot
 sudo apt -y install python3-certbot-nginx
 
-# # Define your email
-CERTBOTMAIL="danlanda@hotmail.com" # change this to a secret
-CERTBOTURL="brandscribe.tech" # change this to a secret
+# Define your email
+EMAIL="REPLACE_EMAIL"
+DOMAIN="REPLACE_DOMAIN"
 
-
-sudo certbot --nginx --non-interactive --agree-tos --email "$CERTBOTMAIL" -d "$CERTBOTURL" #later change this to a secret
+# Use Certbot to obtain and install the SSL certificate
+sudo certbot --nginx --non-interactive --agree-tos --email $EMAIL -d $DOMAIN
 
 # Nginx unit test that will reload Nginx to apply changes ONLY if the test is successful
 sudo nginx -t && systemctl reload nginx
@@ -66,14 +72,19 @@ sudo nginx -t && systemctl reload nginx
 sudo rm -rf /var/www/html
 sudo apt -y install unzip 
 sudo wget -O /var/www/latest.zip https://wordpress.org/latest.zip 
-sudo unzip -o /var/www/latest.zip -d /var/www/html
-sudo rm /var/www/html/latest.zip 
-mv /var/www/html/wordpress /var/www/html
+sudo unzip /var/www/latest.zip -d /var/www/
+sudo rm /var/www/latest.zip 
+mv /var/www/wordpress /var/www/html
 
-# sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
 sudo chmod 640 /var/www/html/wp-config.php 
 sudo chown -R www-data:www-data /var/www/html/
+sudo find /var/www/html/ -type d -exec chmod 0755 {} \;
+sudo find /var/www/html/ -type f -exec chmod 0644 {} \;
 
 SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)
 STRING='put your unique phrase here'
 printf '%s\n' "g/$STRING/d" a "$SALT" . w | ed -s /var/www/html/wp-config.php
+
+# This securely stores the wp-config.php credentials file in AWS S3 for later use or backup
+aws s3 cp /var/www/html/wp-config.php s3://brandscribe-backup
