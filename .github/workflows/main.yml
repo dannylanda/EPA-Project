@@ -47,7 +47,7 @@ jobs:
     # Step 6: Run frontend setup script
     - name: Run frontend Setup Script
       run: |
-        ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} 'sudo sh /home/ubuntu/WordPress_Deployment/bash_scripts/frontend.sh'
+        ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/frontend.sh'
 
     # Step 7: Copy backend files to the VM
     - name: Copy Files to backend VM
@@ -57,7 +57,7 @@ jobs:
     # Step 8: Run backend setup script
     - name: Run backend Setup Script
       run: |
-        ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} 'sudo sh /home/ubuntu/WordPress_Deployment/bash_scripts/backend.sh'
+        ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/backend.sh'
 
     # Step 9: Clean Up
     - name: Clean Up
