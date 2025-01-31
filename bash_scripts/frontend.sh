@@ -86,4 +86,4 @@ sudo apt update
 sudo apt install chkrootkit -y
 
 # Run chrootkit
-sudo chkrootkit > chkrootkit_output.txt
+sudo chkrootkit -q > chkrootkit_output.txt 2>&1
