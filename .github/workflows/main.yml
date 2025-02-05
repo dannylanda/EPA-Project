@@ -18,48 +18,48 @@ jobs:
     - name: Debug SSH Connection (frontend)
       run: |
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
-        chmod 600 private_key
-        ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} "echo 'frontend SSH Connection Successful'"
+        sudo chmod 600 private_key
+        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} "echo 'frontend SSH Connection Successful'"
 
     # Step 3: Debug SSH connection to backend
     - name: Debug SSH Connection (backend)
       run: |
-        ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} "echo 'backend SSH Connection Successful'"
+        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} "echo 'backend SSH Connection Successful'"
 
     # Step 4: Edit Script Variables
     - name: Update Configuration Files
       run: |
-        sed -i 's/REPLACE_DOMAIN/${{ secrets.DOMAIN }}/g' ./configs/nginx.conf
-        sed -i 's/REPLACE_DOMAIN/${{ secrets.DOMAIN }}/g' ./bash_scripts/frontend.sh
-        sed -i 's/REPLACE_EMAIL/${{ secrets.EMAIL }}/g' ./bash_scripts/frontend.sh
-        sed -i 's/FRONTEND_IP/${{ secrets.FRONTEND_IP }}/g' ./bash_scripts/backend.sh
-        sed -i 's/DB_USERNAME/${{ secrets.DB_USERNAME }}/g' ./bash_scripts/frontend.sh
-        sed -i 's/DB_PASSWORD/${{ secrets.DB_PASSWORD }}/g' ./bash_scripts/frontend.sh
-        sed -i 's/DB_USERNAME/${{ secrets.DB_USERNAME }}/g' ./bash_scripts/backend.sh
-        sed -i 's/DB_PASSWORD/${{ secrets.DB_PASSWORD }}/g' ./bash_scripts/backend.sh
-        sed -i 's/BACKEND_IP/${{ secrets.BACKEND_IP }}/g' ./bash_scripts/frontend.sh
+        sudo sed -i 's/REPLACE_DOMAIN/${{ secrets.DOMAIN }}/g' ./configs/nginx.conf
+        sudo sed -i 's/REPLACE_DOMAIN/${{ secrets.DOMAIN }}/g' ./bash_scripts/frontend.sh
+        sudo sed -i 's/REPLACE_EMAIL/${{ secrets.EMAIL }}/g' ./bash_scripts/frontend.sh
+        sudo sed -i 's/FRONTEND_IP/${{ secrets.FRONTEND_IP }}/g' ./bash_scripts/backend.sh
+        sudo sed -i 's/DB_USERNAME/${{ secrets.DB_USERNAME }}/g' ./bash_scripts/frontend.sh
+        sudo sed -i 's/DB_PASSWORD/${{ secrets.DB_PASSWORD }}/g' ./bash_scripts/frontend.sh
+        sudo sed -i 's/DB_USERNAME/${{ secrets.DB_USERNAME }}/g' ./bash_scripts/backend.sh
+        sudo sed -i 's/DB_PASSWORD/${{ secrets.DB_PASSWORD }}/g' ./bash_scripts/backend.sh
+        sudo sed -i 's/BACKEND_IP/${{ secrets.BACKEND_IP }}/g' ./bash_scripts/frontend.sh
 
     # Step 5: Copy frontend files to the VM
     - name: Copy Files to frontend VM
       run: |
-        scp -r -i private_key -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} "${PWD}" ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }}:~
+        sudo scp -r -i private_key -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} "${PWD}" ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }}:~
 
     # Step 6: Run frontend setup script
     - name: Run frontend Setup Script
       run: |
-        ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/frontend.sh'
+        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/frontend.sh'
 
     # Step 7: Copy backend files to the VM
     - name: Copy Files to backend VM
       run: |
-        scp -r -i private_key -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} "${PWD}" ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }}:~
+        sudo scp -r -i private_key -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} "${PWD}" ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }}:~
 
     # Step 8: Run backend setup script
     - name: Run backend Setup Script
       run: |
-        ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/backend.sh'
+        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/backend.sh'
 
     # Step 9: Clean Up
     - name: Clean Up
       run: |
-        rm -f private_key
+        sudo rm -f private_key
