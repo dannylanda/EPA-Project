@@ -3,7 +3,7 @@
  * Plugin Name: AI Content Rewriter
  * Description: A WordPress plugin that uses OpenAI to rewrite content with customizable tone.
  * Version: 1.0
- * Author: Your Name
+ * Author: Landa
  */
 
 // Prevent direct access
