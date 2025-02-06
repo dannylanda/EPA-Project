@@ -31,4 +31,4 @@ sudo mysql $username < /tmp/wordpress_dump.sql
 sudo rm /tmp/wordpress_dump.sql
 
 # This securely stores the credentials file in AWS S3 for later use or backup
-sudo aws s3 cp /home/ubuntu/EPA-Project/creds.txt s3://brandscribe-backup
+#sudo aws s3 cp /home/ubuntu/EPA-Project/creds.txt s3://brandscribe-backup
