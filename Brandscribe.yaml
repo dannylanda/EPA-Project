@@ -120,18 +120,10 @@ Resources:
     Properties:
       InstanceId: !Ref Instance2
 
-  S3Bucket:
-    Type: "AWS::S3::Bucket"
-    Properties:
-      BucketName: "brandscribe-backup"
-      Tags:
-        - Key: "Name"
-          Value: "brandscribe-backup"
-
   S3BucketPolicy:
     Type: "AWS::S3::BucketPolicy"
     Properties:
-      Bucket: !Ref S3Bucket
+      Bucket: "brandscribe-backup"  
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -153,5 +145,5 @@ Outputs:
     Value: !Ref ElasticIP2
 
   S3BucketName:
-    Description: "Name of the S3 bucket."
-    Value: !Ref S3Bucket
+    Description: "Name of the existing S3 bucket."
+    Value: "brandscribe-backup"
