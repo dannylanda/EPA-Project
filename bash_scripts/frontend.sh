@@ -64,7 +64,8 @@ sudo mv /var/www/wordpress /var/www/html
 
 sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
 sudo chmod 640 /var/www/html/wp-config.php 
-sudo aws s3 cp s3://brandscribe-backup/ai-content-rewriter.zip /var/www/html/wp-content/plugins/ai-content-rewriter.zip && sudo unzip -o /var/www/html/wp-content/plugins/ai-content-rewriter.zip -d /var/www/html/wp-content/plugins/ && sudo rm /var/www/html/wp-content/plugins/ai-content-rewriter.zip
+sudo aws s3 cp s3://brandscribe-backup/ai-content-rewriter-v2.zip /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip && sudo unzip -o /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip -d /var/www/html/wp-content/plugins/ && sudo rm /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip
+#- V1 - sudo aws s3 cp s3://brandscribe-backup/ai-content-rewriter.zip /var/www/html/wp-content/plugins/ai-content-rewriter.zip && sudo unzip -o /var/www/html/wp-content/plugins/ai-content-rewriter.zip -d /var/www/html/wp-content/plugins/ && sudo rm /var/www/html/wp-content/plugins/ai-content-rewriter.zip
 sudo chown -R www-data:www-data /var/www/html/
 sudo find /var/www/html/ -type d -exec chmod 0755 {} \;
 sudo find /var/www/html/ -type f -exec chmod 0644 {} \;
