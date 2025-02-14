@@ -82,3 +82,10 @@ sudo printf '%s\n' "g/$STRING/d" a "$SALT" . w | sudo ed -s /var/www/html/wp-con
 
 # This securely stores the wp-config.php credentials file in AWS S3 for later use or backup
 aws s3 cp /var/www/html/wp-config.php s3://brandscribe-backup
+
+# Install chkrootkit vulnerability scanning tool
+sudo apt update
+sudo DEBIAN_FRONTEND=noninteractive apt install chkrootkit -y
+
+# Run chrootkit scanning tool
+sudo chkrootkit > vulnerability_scan_output.txt
