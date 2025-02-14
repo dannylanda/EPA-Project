@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "CloudFormation template to deploy EC2 instances with S3 access and Elastic IPs in eu-west-1."
+Description: "CloudFormation template to deploy EC2 instances with S3 access, Elastic IPs, and CloudWatch CPU monitoring in eu-west-1."
 
 Parameters:
   KeyName:
@@ -8,36 +8,41 @@ Parameters:
     Description: "Key pair to SSH into the EC2 instances."
 
 Resources:
+  # VPC - Creates a Virtual Private Cloud for the instances to run in
   VPC:
     Type: "AWS::EC2::VPC"
     Properties:
-      CidrBlock: "10.0.0.0/16"
+      CidrBlock: "10.0.0.0/16"  # Defines the private IP range for the VPC
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
         - Key: "Name"
           Value: "Brandscribe-VPC"
 
+  # Internet Gateway - Provides internet access for the VPC
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
 
+  # Attach Internet Gateway to the VPC
   VPCGatewayAttachment:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
+  # Public Subnet - Defines a subnet in the VPC that has internet access
   PublicSubnet:
     Type: "AWS::EC2::Subnet"
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: "10.0.1.0/24"
-      MapPublicIpOnLaunch: true
-      AvailabilityZone: "eu-west-1a"
+      CidrBlock: "10.0.1.0/24"  # CIDR block for this subnet
+      MapPublicIpOnLaunch: true  # Automatically assign public IP to EC2 instances in this subnet
+      AvailabilityZone: "eu-west-1a"  # Availability zone within the region
       Tags:
         - Key: "Name"
           Value: "Public-Subnet"
 
+  # Route Table - Defines routing rules for the VPC
   RouteTable:
     Type: "AWS::EC2::RouteTable"
     Properties:
@@ -46,19 +51,22 @@ Resources:
         - Key: "Name"
           Value: "Public-RouteTable"
 
+  # Route - Defines the route that sends traffic to the internet via the Internet Gateway
   PublicRoute:
     Type: "AWS::EC2::Route"
     Properties:
       RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: "0.0.0.0/0"
-      GatewayId: !Ref InternetGateway
+      DestinationCidrBlock: "0.0.0.0/0"  # All traffic
+      GatewayId: !Ref InternetGateway  # Internet Gateway used for traffic
 
+  # Route Table Association - Links the public subnet to the route table
   RouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
     Properties:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref RouteTable
 
+  # Security Group - Allows traffic to the EC2 instances based on specified rules
   SecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
@@ -68,58 +76,63 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: "0.0.0.0/0"
+          CidrIp: "0.0.0.0/0"  # Allows SSH from anywhere
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: "0.0.0.0/0"
+          CidrIp: "0.0.0.0/0"  # Allows HTTP from anywhere
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: "0.0.0.0/0"
+          CidrIp: "0.0.0.0/0"  # Allows HTTPS from anywhere
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          CidrIp: "0.0.0.0/0"
+          CidrIp: "0.0.0.0/0"  # Allows MySQL from anywhere (adjust as needed)
 
+  # EC2 Instance 1 - Deploys the first EC2 instance (Frontend) in the public subnet
   Instance1:
     Type: "AWS::EC2::Instance"
     Properties:
-      InstanceType: "t2.micro"
-      KeyName: !Ref KeyName
-      ImageId: "ami-03fd334507439f4d1"
-      SubnetId: !Ref PublicSubnet
+      InstanceType: "t2.micro"  # Instance size (t2.micro for low cost, suitable for testing)
+      KeyName: !Ref KeyName  # Key pair for SSH access
+      ImageId: "ami-03fd334507439f4d1"  # AMI ID (Amazon Machine Image) for the EC2 instance
+      SubnetId: !Ref PublicSubnet  # Subnet where the instance will reside
       SecurityGroupIds:
-        - !Ref SecurityGroup
+        - !Ref SecurityGroup  # Security group for the instance
       Tags:
         - Key: "Name"
-          Value: "Frontend"
-      IamInstanceProfile: Brandscribe
+          Value: "Frontend"  # Tag the instance as 'Frontend'
+      IamInstanceProfile: Brandscribe  # IAM profile (you should have the profile 'Brandscribe' set up)
 
+  # EC2 Instance 2 - Deploys the second EC2 instance (Backend) in the public subnet
   Instance2:
     Type: "AWS::EC2::Instance"
     Properties:
-      InstanceType: "t2.micro"
-      KeyName: !Ref KeyName
-      ImageId: "ami-03fd334507439f4d1"
-      SubnetId: !Ref PublicSubnet
+      InstanceType: "t2.micro"  # Instance size (t2.micro for low cost, suitable for testing)
+      KeyName: !Ref KeyName  # Key pair for SSH access
+      ImageId: "ami-03fd334507439f4d1"  # AMI ID for the EC2 instance
+      SubnetId: !Ref PublicSubnet  # Subnet where the instance will reside
       SecurityGroupIds:
-        - !Ref SecurityGroup
+        - !Ref SecurityGroup  # Security group for the instance
       Tags:
         - Key: "Name"
-          Value: "Backend"
-      IamInstanceProfile: Brandscribe
+          Value: "Backend"  # Tag the instance as 'Backend'
+      IamInstanceProfile: Brandscribe  # IAM profile
 
+  # Elastic IP 1 - Associates an Elastic IP to Instance1 (Frontend)
   ElasticIP1:
     Type: "AWS::EC2::EIP"
     Properties:
       InstanceId: !Ref Instance1
 
+  # Elastic IP 2 - Associates an Elastic IP to Instance2 (Backend)
   ElasticIP2:
     Type: "AWS::EC2::EIP"
     Properties:
       InstanceId: !Ref Instance2
 
+  # S3 Bucket Policy - Grants access to an existing S3 bucket 'brandscribe-backup'
   S3BucketPolicy:
     Type: "AWS::S3::BucketPolicy"
     Properties:
@@ -129,21 +142,60 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/Brandscribe"
-            Action: "s3:*"
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/Brandscribe"  # IAM role with permissions
+            Action: "s3:*"  # Full access to S3 bucket
             Resource:
               - !Sub "arn:aws:s3:::brandscribe-backup"
               - !Sub "arn:aws:s3:::brandscribe-backup/*"
 
+  # CloudWatch Alarm for CPU utilisation - Instance 1 (Frontend)
+  CPUutilisationAlarm1:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmName: "Instance1-CPU-utilisation-Alarm"  # Name of the CloudWatch Alarm
+      ComparisonOperator: "GreaterThanThreshold"  # Alarm condition: when CPU > threshold
+      EvaluationPeriods: 1  # Evaluate once (5 minutes)
+      MetricName: "CPUutilisation"  # Metric to monitor (CPU utilisation)
+      Namespace: "AWS/EC2"  # AWS service namespace for EC2
+      Period: 300  # Period of 300 seconds (5 minutes)
+      Statistic: "Average"  # Use the average CPU utilisation over the period
+      Threshold: 80  # Set threshold to 80% CPU utilisation
+      AlarmDescription: "Alarm if CPU utilisation of Instance1 exceeds 80% for 5 minutes."
+      Dimensions:
+        - Name: "InstanceId"
+          Value: !Ref Instance1  # Link the alarm to Instance1
+      ActionsEnabled: false  # Set to true to trigger actions like SNS notifications (optional)
+
+  # CloudWatch Alarm for CPU utilisation - Instance 2 (Backend)
+  CPUutilisationAlarm2:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmName: "Instance2-CPU-utilisation-Alarm"  # Name of the CloudWatch Alarm
+      ComparisonOperator: "GreaterThanThreshold"  # Alarm condition: when CPU > threshold
+      EvaluationPeriods: 1  # Evaluate once (5 minutes)
+      MetricName: "CPUutilisation"  # Metric to monitor (CPU utilisation)
+      Namespace: "AWS/EC2"  # AWS service namespace for EC2
+      Period: 300  # Period of 300 seconds (5 minutes)
+      Statistic: "Average"  # Use the average CPU utilisation over the period
+      Threshold: 80  # Set threshold to 80% CPU utilisation
+      AlarmDescription: "Alarm if CPU utilisation of Instance2 exceeds 80% for 5 minutes."
+      Dimensions:
+        - Name: "InstanceId"
+          Value: !Ref Instance2  # Link the alarm to Instance2
+      ActionsEnabled: false  # Set to true to trigger actions like SNS notifications (optional)
+
 Outputs:
+  # Output the public IP of Instance 1 (Frontend)
   Instance1PublicIP:
     Description: "Public IP address of the first EC2 instance (Frontend)."
     Value: !Ref ElasticIP1
 
+  # Output the public IP of Instance 2 (Backend)
   Instance2PublicIP:
     Description: "Public IP address of the second EC2 instance (Backend)."
     Value: !Ref ElasticIP2
 
+  # Output the name of the S3 bucket
   S3BucketName:
     Description: "Name of the existing S3 bucket."
     Value: "brandscribe-backup"
