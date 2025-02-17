@@ -107,4 +107,4 @@ sudo apt update
 sudo DEBIAN_FRONTEND=noninteractive apt install chkrootkit -y
 
 # Run chkrootkit and save results to a file
-sudo chkrootkit > vulnerability_scan_output.txt
+sudo chkrootkit > /root/vulnerability_scan_output.txt
