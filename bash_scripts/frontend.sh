@@ -21,37 +21,49 @@ echo "Running apt update..." | tee -a $LOG_FILE
 sudo apt -y update && sudo apt -y upgrade
 check_exit_status "apt update and upgrade"
 
-# Install the AWS CLI tool using Snap for managing AWS resources
+# Install AWS CLI tool for interacting with AWS services
 sudo snap install aws-cli --classic
 
+# Re-run updates to ensure all packages are up to date
 sudo apt -y update && sudo apt -y upgrade
+
+# Create a test file to verify script execution
 sudo touch /home/ubuntu/testing.txt
+
+# Install and start Nginx web server
 sudo apt -y install nginx
 sudo systemctl start nginx && sudo systemctl enable nginx 
+
+# Log the status of the Nginx service
 sudo sh -c 'systemctl status nginx > /home/ubuntu/testing.txt'
+
+# Install PHP and required extensions for WordPress
 sudo apt -y install php-fpm php php-cli php-common php-imap php-snmp php-xml php-zip php-mbstring php-curl php-mysqli php-gd php-intl
+
+# Log the PHP version
 sudo sh -c 'php -v >> /home/ubuntu/testing.txt'
 
+# Log the contents of the custom Nginx configuration file before moving it
 sudo sh -c 'cat /home/ubuntu/EPA-Project/configs/nginx.conf >> /home/ubuntu/testing.txt'
 
+# Move custom Nginx configuration file into place
 sudo mv /home/ubuntu/EPA-Project/configs/nginx.conf /etc/nginx/conf.d/epa-domain.conf
 
-# Update nginx configuration file
+# Test Nginx configuration and reload if valid
 sudo nginx -t && sudo systemctl reload nginx
 
-# Update package list and install Certbot and Certbot Nginx plugin
+# Update package lists and install Certbot for SSL certificates
 sudo apt -y update && sudo apt -y upgrade
-sudo apt -y install certbot
-sudo apt -y install python3-certbot-nginx
+sudo apt -y install certbot python3-certbot-nginx
 
-# Define your email and domain
+# Define email and domain for SSL certificate registration
 EMAIL="REPLACE_EMAIL"
 DOMAIN="REPLACE_DOMAIN"
 
-# Use Certbot to obtain and install the SSL certificate
+# Use Certbot to obtain and install the SSL certificate for Nginx
 sudo certbot --nginx --non-interactive --agree-tos --email $EMAIL -d $DOMAIN
 
-# Nginx unit test that will reload Nginx to apply changes ONLY if the test is successful
+# Validate Nginx configuration and reload to apply SSL settings
 sudo nginx -t && sudo systemctl reload nginx
 
 # Install WordPress
@@ -62,30 +74,37 @@ sudo unzip /var/www/latest.zip -d /var/www/
 sudo rm /var/www/latest.zip 
 sudo mv /var/www/wordpress /var/www/html
 
+# Rename WordPress config file
 sudo mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
 sudo chmod 640 /var/www/html/wp-config.php 
-sudo aws s3 cp s3://brandscribe-backup/ai-content-rewriter-v2.zip /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip && sudo unzip -o /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip -d /var/www/html/wp-content/plugins/ && sudo rm /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip
-#- V1 - sudo aws s3 cp s3://brandscribe-backup/ai-content-rewriter.zip /var/www/html/wp-content/plugins/ai-content-rewriter.zip && sudo unzip -o /var/www/html/wp-content/plugins/ai-content-rewriter.zip -d /var/www/html/wp-content/plugins/ && sudo rm /var/www/html/wp-content/plugins/ai-content-rewriter.zip
+
+# Download and install a WordPress plugin from AWS S3
+sudo aws s3 cp s3://brandscribe-backup/ai-content-rewriter-v2.zip /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip 
+sudo unzip -o /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip -d /var/www/html/wp-content/plugins/
+sudo rm /var/www/html/wp-content/plugins/ai-content-rewriter-v2.zip
+
+# Set correct ownership and permissions for WordPress files
 sudo chown -R www-data:www-data /var/www/html/
 sudo find /var/www/html/ -type d -exec chmod 0755 {} \;
 sudo find /var/www/html/ -type f -exec chmod 0644 {} \;
 
-# Update wp-config.php with the database credentials
+# Update wp-config.php with database credentials
 sudo sed -i "s/username_here/DB_USERNAME/g" /var/www/html/wp-config.php
 sudo sed -i "s/password_here/DB_PASSWORD/g" /var/www/html/wp-config.php
 sudo sed -i "s/database_name_here/DB_USERNAME/g" /var/www/html/wp-config.php
 sudo sed -i "s/localhost/BACKEND_IP/g" /var/www/html/wp-config.php
 
+# Fetch and update WordPress authentication salts
 SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)
 STRING='put your unique phrase here'
 sudo printf '%s\n' "g/$STRING/d" a "$SALT" . w | sudo ed -s /var/www/html/wp-config.php
 
-# This securely stores the wp-config.php credentials file in AWS S3 for later use or backup
+# Backup the updated wp-config.php to AWS S3
 aws s3 cp /var/www/html/wp-config.php s3://brandscribe-backup
 
-# Install chkrootkit vulnerability scanning tool
+# Install chkrootkit for vulnerability scanning
 sudo apt update
 sudo DEBIAN_FRONTEND=noninteractive apt install chkrootkit -y
 
-# Run chrootkit scanning tool
+# Run chkrootkit and save results to a file
 sudo chkrootkit > vulnerability_scan_output.txt

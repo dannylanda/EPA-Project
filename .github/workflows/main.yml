@@ -1,65 +1,101 @@
-name: Test and Deploy Bash Script
+name: Test and Deploy Bash Script  # The name of the workflow.
 
 on:
   push:
     branches:
-      - master
+      - master  # This workflow triggers when code is pushed to the 'master' branch.
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Specifies that the job runs on the latest Ubuntu virtual machine.
 
     steps:
-    # Step 1: Checkout code
+    # Step 1: Checkout the repository code.
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4  # This action pulls the latest code from the repository so the workflow can access it.
 
-    # Step 2: Debug SSH connection to frontend
+    # Step 2: Test SSH connection to the frontend server.
     - name: Debug SSH Connection (frontend)
       run: |
+        # Store the SSH private key (retrieved from GitHub Secrets) into a file named 'private_key'.
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
-        sudo chmod 600 private_key
-        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} "echo 'frontend SSH Connection Successful'"
 
-    # Step 3: Debug SSH connection to backend
+        # Set the correct permissions so only the owner can read and write the private key file.
+        sudo chmod 600 private_key
+
+        # Attempt an SSH connection to the frontend server.
+        # The '-i' flag specifies the SSH key file.
+        # The '-o StrictHostKeyChecking=no' option prevents interactive host key verification.
+        # The '-p' flag specifies the port number (retrieved from GitHub Secrets).
+        # If successful, it will print 'frontend SSH Connection Successful' on the remote server.
+        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
+        ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} "echo 'frontend SSH Connection Successful'"
+
+    # Step 3: Test SSH connection to the backend server.
     - name: Debug SSH Connection (backend)
       run: |
-        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} "echo 'backend SSH Connection Successful'"
+        # Attempt an SSH connection to the backend server using the same method as the frontend.
+        # If successful, it will print 'backend SSH Connection Successful' on the remote server.
+        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
+        ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} "echo 'backend SSH Connection Successful'"
 
-    # Step 4: Edit Script Variables
+    # Step 4: Replace placeholder variables in configuration files with actual values.
     - name: Update Configuration Files
       run: |
+        # Replace 'REPLACE_DOMAIN' with the actual domain name in the Nginx configuration file.
         sudo sed -i 's/REPLACE_DOMAIN/${{ secrets.DOMAIN }}/g' ./configs/nginx.conf
+
+        # Replace 'REPLACE_DOMAIN' and 'REPLACE_EMAIL' in the frontend setup script.
         sudo sed -i 's/REPLACE_DOMAIN/${{ secrets.DOMAIN }}/g' ./bash_scripts/frontend.sh
         sudo sed -i 's/REPLACE_EMAIL/${{ secrets.EMAIL }}/g' ./bash_scripts/frontend.sh
+
+        # Replace 'FRONTEND_IP' in the backend setup script to reference the correct frontend server IP.
         sudo sed -i 's/FRONTEND_IP/${{ secrets.FRONTEND_IP }}/g' ./bash_scripts/backend.sh
+
+        # Replace database credentials in both the frontend and backend setup scripts.
         sudo sed -i 's/DB_USERNAME/${{ secrets.DB_USERNAME }}/g' ./bash_scripts/frontend.sh
         sudo sed -i 's/DB_PASSWORD/${{ secrets.DB_PASSWORD }}/g' ./bash_scripts/frontend.sh
         sudo sed -i 's/DB_USERNAME/${{ secrets.DB_USERNAME }}/g' ./bash_scripts/backend.sh
         sudo sed -i 's/DB_PASSWORD/${{ secrets.DB_PASSWORD }}/g' ./bash_scripts/backend.sh
+
+        # Replace 'BACKEND_IP' in the frontend setup script so it can communicate with the backend server.
         sudo sed -i 's/BACKEND_IP/${{ secrets.BACKEND_IP }}/g' ./bash_scripts/frontend.sh
 
-    # Step 5: Copy frontend files to the VM
+    # Step 5: Securely copy project files to the frontend server.
     - name: Copy Files to frontend VM
       run: |
-        sudo scp -r -i private_key -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} "${PWD}" ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }}:~
+        # Use 'scp' (secure copy) to transfer the project files to the frontend server.
+        # The '-r' flag ensures directories are copied recursively.
+        # The '-i' flag specifies the SSH key file.
+        # The '-o StrictHostKeyChecking=no' option avoids interactive prompts.
+        # The '-P' flag specifies the SSH port.
+        # The destination is the home directory of the SSH user on the frontend server.
+        sudo scp -r -i private_key -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} \
+        "${PWD}" ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }}:~
 
-    # Step 6: Run frontend setup script
+    # Step 6: Execute the frontend setup script on the frontend server.
     - name: Run frontend Setup Script
       run: |
-        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/frontend.sh'
+        # Establish an SSH connection and run the frontend setup script remotely.
+        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
+        ${{ secrets.SSH_USER }}@${{ secrets.FRONTEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/frontend.sh'
 
-    # Step 7: Copy backend files to the VM
+    # Step 7: Securely copy project files to the backend server.
     - name: Copy Files to backend VM
       run: |
-        sudo scp -r -i private_key -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} "${PWD}" ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }}:~
+        # Use 'scp' to transfer the project files to the backend server, using the same approach as the frontend transfer.
+        sudo scp -r -i private_key -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} \
+        "${PWD}" ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }}:~
 
-    # Step 8: Run backend setup script
+    # Step 8: Execute the backend setup script on the backend server.
     - name: Run backend Setup Script
       run: |
-        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/backend.sh'
+        # Establish an SSH connection and run the backend setup script remotely.
+        sudo ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
+        ${{ secrets.SSH_USER }}@${{ secrets.BACKEND_IP }} 'sudo sh /home/ubuntu/EPA-Project/bash_scripts/backend.sh'
 
-    # Step 9: Clean Up
+    # Step 9: Remove the private key file for security reasons.
     - name: Clean Up
       run: |
+        # Delete the private key file to ensure it is not stored on the runner after execution.
         sudo rm -f private_key
