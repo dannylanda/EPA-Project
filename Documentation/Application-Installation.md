@@ -1,78 +1,80 @@
-# AI Content Rewriter WordPress Plugin
+# AI Content Rewriter - Application Installation Guide
 
-A WordPress plugin that uses OpenAI's API to rewrite content with customizable tone.
+## Overview
+This document provides a detailed step-by-step guide to installing and deploying the **AI Content Rewriter** plugin as part of a fully automated **WordPress deployment**. This deployment leverages **AWS CloudFormation**, **GitHub Actions**, and **automated scripts** to ensure a hands-off and secure installation.
 
-## Directory Structure
+---
 
-```
-wp-content/plugins/ai-content-rewriter/
-├── ai-content-rewriter.php
-├── js/
-│   └── air-script.js
-└── README.md
-```
+## 1. **Deployment Flow Overview**
 
-## Manual Installation Steps
+1. **CloudFormation Template Stored in S3**: 
+   - The infrastructure definition is securely stored in an **AWS S3** bucket.
+   
+2. **CloudFormation Deployment**:
+   - The CloudFormation stack is deployed, provisioning the necessary infrastructure including EC2 instances, security groups, IAM roles, and network configurations.
+   - **AWS WAF rules** are set up by default to enhance application security.
+   - **Amazon CloudWatch** is configured to monitor application performance and security logs.
 
-1. Create a folder called `ai-content-rewriter`
-2. Copy the files into the correct structure as shown above
-3. Zip the `ai-content-rewriter` folder
-4. In WordPress admin, go to Plugins > Add New > Upload Plugin
-5. Choose the ZIP file and click "Install Now"
-6. Activate the plugin
-7. Go to AI Rewriter > Settings
-8. Enter your OpenAI API key
-9. Select your preferred tone of voice
-10. Save settings
+3. **Manual Trigger for GitHub Actions**:
+   - Once the infrastructure is deployed, a manual step is required to trigger **GitHub Actions**.
 
-## Requirements
+4. **GitHub Actions Execution**:
+   - GitHub Actions retrieves sensitive information (e.g., API keys, database credentials) from **GitHub Secrets**.
+   - The workflow runs scripts on the appropriate servers to configure and install the application.
 
-- WordPress 5.0 or higher
-- PHP 7.4 or higher
-- OpenAI API key
-- Active internet connection
+5. **Automated Script Execution**:
+   - Scripts are executed to pull in and install the AI Content Rewriter plugin.
+   - **Security measures** such as **WAF rules**, **Amazon CloudWatch monitoring**, and **Chkrootkit scans** are applied automatically.
 
-## Features
+---
 
-- Custom admin interface in WordPress dashboard
-- OpenAI API integration
-- Customizable tone of voice settings
-- Real-time content rewriting
-- AJAX-based processing
-- Error handling and user feedback
-- Responsive design
+## 2. **Prerequisites**
 
-## Usage
+### 2.1 **Infrastructure Requirements**
+- **AWS Account** with permissions to deploy CloudFormation templates.
+- **AWS S3 Bucket** to store the CloudFormation template.
+- **AWS CloudFormation** service enabled.
+- **EC2 Instances** with necessary security groups and IAM roles.
+- **SSL Certificates** (using Let's Encrypt or a valid CA).
+- **AWS WAF** (Web Application Firewall) configured by default.
+- **Amazon CloudWatch** for monitoring and logging.
 
-1. Navigate to "AI Rewriter" in your WordPress admin menu
-2. Paste your content into the "Original Content" text area
-3. Click "Rewrite Content"
-4. Wait for processing
-5. Your rewritten content will appear in the "Rewritten Content" text area
+### 2.2 **Software Requirements**
+- **Ubuntu 20.04+** (or any compatible Linux distribution).
+- **Nginx** (or Apache) as the web server.
+- **PHP 7.4+** with required extensions:
+  - `php-fpm`, `php-cli`, `php-curl`, `php-mbstring`, `php-mysqli`, `php-xml`, `php-zip`, `php-gd`, `php-intl`.
+- **MySQL** (or MariaDB) for the database.
+- **AWS CLI** for managing cloud resources.
+- **WP-CLI** for WordPress management.
+- **Certbot** for SSL certificate management.
+- **Chkrootkit** for malware and rootkit detection.
+- **Amazon CloudWatch Logs Agent** for monitoring application logs.
 
-## Security Features
+---
 
-- Nonce verification for AJAX requests
-- Input sanitization
-- Direct file access prevention
-- Proper WordPress hooks and filters usage
+## 4. **Post-Installation Tasks**
+1. **Verify WordPress is running** by navigating to your domain.
+2. **Test the AI Content Rewriter Plugin** by entering sample content.
+3. **Check SSL Certificate** using:
+   ```sh
+   openssl s_client -connect yourdomain.com:443
+   ```
+4. **Monitor Security Logs** using **Amazon CloudWatch**.
+   - Check logs for any security threats or performance issues.
+5. **Review AWS WAF Logs** to ensure security rules are functioning as expected.
+6. **Monitor Server Health** using CloudWatch metrics.
 
-## About Plugin Settings
+---
 
-### OpenAI API Key
-- Required for the plugin to function
-- Must be entered in the settings page before using the plugin
-- Securely stored in WordPress database
-- Can be updated at any time
+## 5. **Maintenance & Updates**
+- Regularly update **WordPress Core, Plugins, and System Packages**.
+- Monitor **AWS WAF** logs for any suspicious activity.
+- Schedule **Chkrootkit scans** to run periodically.
+- Back up **wp-config.php** and other critical files to **AWS S3**.
+- Review **CloudWatch metrics and alerts** for proactive maintenance.
 
-### Tone of Voice Options
-- Professional: Best for business and formal content
-- Casual: Suitable for fun and informal writing
-- Friendly: Perfect for upbeat customer-facing content
-- Formal: Ideal for formal writing
+---
 
-## Support and Updates
-
-- Regular updates for security and functionality
-- Compatible with latest WordPress versions
-- Tested with major themes and plugins
+## Conclusion
+This document outlines a fully automated **WordPress deployment** using **AWS CloudFormation, GitHub Actions, WP-CLI, and security enhancements**. With these steps, the **AI Content Rewriter** plugin is deployed securely and efficiently, minimising manual intervention while leveraging **AWS WAF and CloudWatch** for security and monitoring.
