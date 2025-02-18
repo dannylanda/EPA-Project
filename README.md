@@ -111,4 +111,4 @@ For support or queries:
 3. For urgent issues, use the #devops-support Slack channel
 
 ## Confidentiality
-This project and documentation are confidential and proprietary to JD Sports. Do not share any details externally.
+This project and documentation are confidential and proprietary to JD Sports. Do not share any details externally. Do not expose any internal IP addresses or internal brand guidelines/tone of voice to anyone outside of JD Sports.
