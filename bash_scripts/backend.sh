@@ -24,15 +24,11 @@ username=DB_USERNAME
 password=DB_PASSWORD
 
 # Store database credentials in a file for reference
-# This is not a secure way to store credentials, consider using environment variables or a secrets manager
 echo $username > /home/ubuntu/EPA-Project/creds.txt
 echo $password >> /home/ubuntu/EPA-Project/creds.txt
 
 # Download a WordPress database backup from an AWS S3 bucket
 sudo aws s3 cp s3://brandscribe-backup/wordpress_dump.sql /tmp/wordpress_dump.sql
-
-# If the backup is compressed, use gunzip to extract it (commented out in this script)
-# sudo gunzip /tmp/wordpress_dump.sql.gz
 
 # Create the database if it doesn't already exist
 sudo mysql -e "CREATE DATABASE IF NOT EXISTS $username"
@@ -53,5 +49,4 @@ sudo mysql $username < /tmp/wordpress_dump.sql
 sudo rm /tmp/wordpress_dump.sql
 
 # This line (commented out) would upload the credentials file to an AWS S3 bucket for backup
-# Ensure this is handled securely if needed
 # sudo aws s3 cp /home/ubuntu/EPA-Project/creds.txt s3://brandscribe-backup
