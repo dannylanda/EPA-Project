@@ -26,7 +26,7 @@ This document outlines the necessary **infrastructure, software, and security re
 ## 3. Software Requirements
 ### 3.1 **Web Server & WordPress Stack**
 - **Nginx** (or Apache) for serving WordPress
-- **PHP 7.4+** with required extensions:
+- **PHP 8+** with required extensions:
   - `php-fpm`, `php-cli`, `php-curl`, `php-mbstring`, `php-mysqli`, `php-xml`, `php-zip`, `php-gd`, `php-intl`
 - **MySQL or MariaDB** for database management
 - **WordPress (Latest Version)**
