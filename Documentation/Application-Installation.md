@@ -41,7 +41,7 @@ This document provides a detailed step-by-step guide to installing and deploying
 
 ### 2.2 **Software Requirements**
 - **Ubuntu 20.04+** (or any compatible Linux distribution).
-- **Nginx** (or Apache) as the web server.
+- **Nginx** as the web server.
 - **PHP 7.4+** with required extensions:
   - `php-fpm`, `php-cli`, `php-curl`, `php-mbstring`, `php-mysqli`, `php-xml`, `php-zip`, `php-gd`, `php-intl`.
 - **MySQL** (or MariaDB) for the database.
