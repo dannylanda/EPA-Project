@@ -1,13 +1,13 @@
 # AI-Powered Content Creation Tool
 
 ## Overview
-An internal JD Sports tool that standardizes third-party product content to align with our brand standards. It automatically rewrites product descriptions and content to maintain consistent brand voice and editorial guidelines across all products.
+An internal JD Sports tool that standardises third-party product content to align with our brand standards. It automatically rewrites product descriptions and content to maintain consistent brand voice and editorial guidelines across all products.
 
 ## Features
 - AI-powered content rewriting
-- Brand voice standardization
+- Brand voice standardisation
 - Automated content processing
-- SEO optimization
+- SEO optimisation
 - Compliance checking
 - Real-time content preview
 - Batch processing capabilities
@@ -26,7 +26,7 @@ An internal JD Sports tool that standardizes third-party product content to alig
 - Database: MariaDB
 - Infrastructure: AWS CloudFormation
 - CI/CD: GitHub Actions
-- Monitoring: AWS CloudWatch, Amazon Inspector
+- Monitoring: AWS CloudWatch
 - Security: Cloudflare WAF, Chkrootkit
 
 ## Installation
@@ -60,10 +60,8 @@ The application includes custom WAF rules for:
 - AWS CloudWatch metrics for performance monitoring
 - Custom CloudWatch alarms for security events
 - Cloudflare analytics for traffic analysis
-- Amazon Inspector for vulnerability assessment
 
 ## CI/CD Pipeline
-Our internal GitHub Enterprise instance handles:
 - Code testing
 - Security scanning
 - Infrastructure deployment
@@ -73,14 +71,12 @@ Our internal GitHub Enterprise instance handles:
 1. Build
 2. Test
 3. Security Scan
-4. Deploy to Staging
-5. Integration Tests
-6. Deploy to Production
+4. Deploy
 
 ## Development
 
 ### Branch Strategy
-- `main`: Production-ready code
+- `master`: Production-ready code
 - `develop`: Development branch
 - `feature/*`: New features
 - `hotfix/*`: Emergency fixes
