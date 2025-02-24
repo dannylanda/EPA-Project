@@ -1,4 +1,4 @@
-# Brandscribe Creation Tool
+# Brandscribe Content Creation Tool
 
 ## Overview
 An internal JD Sports tool that standardises third-party product content to align with our brand standards. It automatically rewrites product descriptions and content to maintain consistent brand voice and editorial guidelines across all products.
