@@ -60,6 +60,25 @@ sudo apt -y install certbot python3-certbot-nginx
 EMAIL="REPLACE_EMAIL"
 DOMAIN="REPLACE_DOMAIN"
 
+# --- DEVELOPED SHOULD HAVE FEATURE / AUTOMATING THE DNS RECORD ---
+# CF_API=REPLACE_CF_API
+# CF_ZONE_ID=REPLACE_CF_ZONE_ID
+# 
+# log "Creating A record..."
+#curl --request POST \
+#  --url https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records \
+#  --header 'Content-Type: application/json' \
+#  --header "Authorization: Bearer $CF_API" \
+#  --data '{
+#  "content": "'"$elastic_ip"'",
+#  "name": "'"$my_domain"'",
+#  "proxied": true,
+#  "type": "A",
+#  "comment": "Automatically adding A record",
+#  "tags": [],
+#  "ttl": 3600
+#}'
+
 # Use Certbot to obtain and install the SSL certificate for Nginx
 sudo certbot --nginx --non-interactive --agree-tos --email $EMAIL -d $DOMAIN
 
